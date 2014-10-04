@@ -1,0 +1,66 @@
+Rails First Application With UUID Using Postgres As Database
+
+1)Create the application 
+ rails new rails4test -T --database postgres
+
+2)Create the rvmrc file.
+ vim .rvmrc
+ source ~/.rvm/scripts/rvm
+ type rvm | head -n 1
+ rvm use ruby-2.1.2
+ rvm gemset use myreference_rails2.1.2
+
+3)Bundle Install 
+  bundle install
+
+4)Please verify the database.yml file with proper user name and password.
+ vim config/database.yml 
+
+
+5)Please install dependies for the UUID
+ sudo apt-get install libossp-uuid-dev
+ sudo apt-get install postgresql-contrib-9.1
+ sudo /etc/init.d/postgresql restart
+
+6)Login to postgres and run following changes.
+ sudo -u postgres psql postgres
+ CREATE DATABASE rails4test_uuid;
+ ALTER USER user WITH SUPERUSER;
+ create extension "adminpack";
+ create extension "uuid-ossp";
+
+NOTE:- user is the user name diven in database.yml file in step 4
+
+7) rails g migration enable_uuid_ossp_extension
+
+class EnableUuidOsspExtension < ActiveRecord::Migration
+  def change
+    enable_extension 'uuid-ossp'
+  end
+end
+EnableUuidOsspExtension.new.change
+
+8) To verfiy we can 
+ SELECT uuid_in(md5(now()::text)::cstring);
+
+
+9) Create a model for the application , example posts.
+rails g model post title:string
+
+10)In migration file please specify id as UUID
+class CreatePosts < ActiveRecord::Migration
+  def change
+    create_table :posts, id: :uuid do |t|
+      t.string :title
+
+      t.timestamps
+    end
+  end
+end
+
+11) Give rake db:migrate
+
+12)Login to console and create a post to verify uuid is generated.
+Post.create(title:'gurudath')
+ => #<Post id: "966d1a3a-7d2e-474f-ab84-4a607326c4ac", title: "gurudath", created_at: "2014-10-04 05:15:50", updated_at: "2014-10-04 05:15:50"> 
+
